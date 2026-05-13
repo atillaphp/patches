@@ -1,0 +1,47 @@
+--- a/web/modules/contrib/feeds/src/Feeds/State/CleanState.php
++++ b/web/modules/contrib/feeds/src/Feeds/State/CleanState.php
+@@ -17,7 +17,10 @@
+  */
+ class CleanState extends State implements CleanStateInterface {
+ 
+-  use DependencySerializationTrait;
++  use DependencySerializationTrait {
++    __sleep as dependencySerializationTraitSleep;
++    __wakeup as dependencySerializationTraitWakeUp;
++  }
+ 
+   /**
+    * The database table name.
+@@ -86,6 +89,32 @@
+     $this->connection = $connection;
+     $this->entityTypeManager = $entity_type_manager;
+   }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function __sleep() {
++    $vars = $this->dependencySerializationTraitSleep();
++
++    // Do not serialize the connection and entity type manager objects.
++    foreach (['connection', 'entityTypeManager'] as $prop) {
++      if (($key = array_search($prop, $vars)) !== FALSE) {
++        unset($vars[$key]);
++      }
++    }
++
++    return $vars;
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function __wakeup() {
++    $this->dependencySerializationTraitWakeUp();
++    $container = \Drupal::getContainer();
++    $this->connection = $container->get('database');
++    $this->entityTypeManager = $container->get('entity_type.manager');
++  }
+ 
+   /**
+    * {@inheritdoc}

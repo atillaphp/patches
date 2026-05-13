@@ -1,0 +1,20 @@
+--- a/web/modules/contrib/feeds_ex/src/XpathDomXpath.php
++++ b/web/modules/contrib/feeds_ex/src/XpathDomXpath.php
+@@ -50,7 +50,7 @@
+   /**
+    * {@inheritdoc}
+    */
+-  public function evaluate($expression, $context_node = NULL, $register_node_ns = TRUE) {
++  public function evaluate($expression, ?\DOMNode $context_node = NULL, $register_node_ns = TRUE) {
+     return $this->xpath->evaluate($expression, $context_node, $register_node_ns);
+   }
+ 
+@@ -68,7 +68,7 @@
+   /**
+    * {@inheritdoc}
+    */
+-  public function query($expression, $context_node = NULL, $register_node_ns = TRUE) {
++  public function query($expression, ?\DOMNode $context_node = NULL, $register_node_ns = TRUE) {
+     return $this->xpath->query($expression, $context_node, $register_node_ns);
+   }
+ 
