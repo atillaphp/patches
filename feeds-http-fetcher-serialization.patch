@@ -1,21 +1,52 @@
 diff --git a/src/Feeds/Fetcher/HttpFetcher.php b/src/Feeds/Fetcher/HttpFetcher.php
-index b4e5904..4013442 100644
+index d92679c..13c727d 100644
 --- a/src/Feeds/Fetcher/HttpFetcher.php
 +++ b/src/Feeds/Fetcher/HttpFetcher.php
-@@ -10,6 +10,7 @@ use Drupal\feeds\Exception\EmptyFeedException;
- use Drupal\feeds\Exception\FetchException;
- use Drupal\feeds\FeedInterface;
- use Drupal\feeds\File\FeedsFileSystemInterface;
+@@ -10,6 +10,7 @@ namespace Drupal\feeds\Feeds\Fetcher;
+ use Drupal\Component\Utility\UrlHelper;
+ use Drupal\Core\Cache\CacheBackendInterface;
+ use Drupal\Core\Config\ConfigFactoryInterface;
 +use Drupal\Core\DependencyInjection\DependencySerializationTrait;
- use Drupal\feeds\Plugin\Type\ClearableInterface;
- use Drupal\feeds\Plugin\Type\Fetcher\FetcherInterface;
- use Drupal\feeds\Plugin\Type\PluginBase;
-@@ -35,6 +36,8 @@ use Symfony\Component\HttpFoundation\Response;
+ use Drupal\Core\File\FileSystemInterface;
+ use Drupal\Core\Form\FormStateInterface;
+ use Drupal\feeds\FeedInterface;
+@@ -28,6 +29,8 @@ use GuzzleHttp\Exception\RequestException;
+  * )
   */
- class HttpFetcher extends PluginBase implements ClearableInterface, FetcherInterface, ContainerFactoryPluginInterface {
- 
+ class HttpFetcher extends FetcherBase implements ConfigurableTargetInterface {
 +  use DependencySerializationTrait;
 +
    /**
     * The Guzzle client.
     *
+diff --git a/src/Feeds/State/CleanState.php b/src/Feeds/State/CleanState.php
+--- a/src/Feeds/State/CleanState.php
++++ b/src/Feeds/State/CleanState.php
+@@ -97,7 +97,7 @@
+     $vars = $this->dependencySerializationTraitSleep();
+ 
+     // Do not serialize the connection and entity type manager objects.
+-    foreach (['connection', 'entityTypeManager'] as $prop) {
++    foreach (['connection', 'entityTypeManager', 'logger', 'messenger'] as $prop) {
+       if (($key = array_search($prop, $vars)) !== FALSE) {
+         unset($vars[$key]);
+       }
+diff --git a/src/State.php b/src/State.php
+--- a/src/State.php
++++ b/src/State.php
+@@ -141,10 +141,11 @@
+   public function __sleep() {
+     $vars = $this->dependencySerializationTraitSleep();
+ 
+-    // Do not serialize the logger object.
+-    $key = array_search('logger', $vars);
+-    if ($key !== FALSE) {
+-      unset($vars[$key]);
++    // Do not serialize the logger and messenger objects.
++    foreach (['logger', 'messenger'] as $prop) {
++      if (($key = array_search($prop, $vars)) !== FALSE) {
++        unset($vars[$key]);
++      }
+     }
+ 
+     return $vars;
