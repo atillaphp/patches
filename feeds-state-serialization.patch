@@ -1,0 +1,31 @@
+diff --git a/src/Feeds/State/CleanState.php b/src/Feeds/State/CleanState.php
+--- a/src/Feeds/State/CleanState.php
++++ b/src/Feeds/State/CleanState.php
+@@ -97,7 +97,7 @@
+     $vars = $this->dependencySerializationTraitSleep();
+ 
+     // Do not serialize the connection and entity type manager objects.
+-    foreach (['connection', 'entityTypeManager'] as $prop) {
++    foreach (['connection', 'entityTypeManager', 'logger', 'messenger'] as $prop) {
+       if (($key = array_search($prop, $vars)) !== FALSE) {
+         unset($vars[$key]);
+       }
+diff --git a/src/State.php b/src/State.php
+--- a/src/State.php
++++ b/src/State.php
+@@ -141,10 +141,11 @@
+   public function __sleep() {
+     $vars = $this->dependencySerializationTraitSleep();
+ 
+-    // Do not serialize the logger object.
+-    $key = array_search('logger', $vars);
+-    if ($key !== FALSE) {
+-      unset($vars[$key]);
++    // Do not serialize the logger and messenger objects.
++    foreach (['logger', 'messenger'] as $prop) {
++      if (($key = array_search($prop, $vars)) !== FALSE) {
++        unset($vars[$key]);
++      }
+     }
+ 
+     return $vars;
