@@ -20,17 +20,30 @@ index d92679c..13c727d 100644
     * The Guzzle client.
     *
 diff --git a/src/Feeds/State/CleanState.php b/src/Feeds/State/CleanState.php
+index d4e9a56..b8e3a2c 100644
 --- a/src/Feeds/State/CleanState.php
 +++ b/src/Feeds/State/CleanState.php
-@@ -97,7 +97,7 @@
-     $vars = $this->dependencySerializationTraitSleep();
+@@ -113,4 +113,19 @@ class CleanState extends State implements CleanStateInterface {
+     return parent::progress($total, $progress);
+   }
  
-     // Do not serialize the connection and entity type manager objects.
--    foreach (['connection', 'entityTypeManager'] as $prop) {
++  /**
++   * {@inheritdoc}
++   */
++  public function __sleep() {
++    $vars = $this->dependencySerializationTraitSleep();
++
++    // Do not serialize the connection and entity type manager objects.
 +    foreach (['connection', 'entityTypeManager', 'logger', 'messenger'] as $prop) {
-       if (($key = array_search($prop, $vars)) !== FALSE) {
-         unset($vars[$key]);
-       }
++      if (($key = array_search($prop, $vars)) !== FALSE) {
++        unset($vars[$key]);
++      }
++    }
++
++    return $vars;
++  }
++
+ }
 diff --git a/src/State.php b/src/State.php
 --- a/src/State.php
 +++ b/src/State.php
