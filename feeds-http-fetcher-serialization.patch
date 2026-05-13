@@ -1,0 +1,21 @@
+diff --git a/src/Feeds/Fetcher/HttpFetcher.php b/src/Feeds/Fetcher/HttpFetcher.php
+index b4e5904..4013442 100644
+--- a/src/Feeds/Fetcher/HttpFetcher.php
++++ b/src/Feeds/Fetcher/HttpFetcher.php
+@@ -10,6 +10,7 @@ use Drupal\feeds\Exception\EmptyFeedException;
+ use Drupal\feeds\Exception\FetchException;
+ use Drupal\feeds\FeedInterface;
+ use Drupal\feeds\File\FeedsFileSystemInterface;
++use Drupal\Core\DependencyInjection\DependencySerializationTrait;
+ use Drupal\feeds\Plugin\Type\ClearableInterface;
+ use Drupal\feeds\Plugin\Type\Fetcher\FetcherInterface;
+ use Drupal\feeds\Plugin\Type\PluginBase;
+@@ -35,6 +36,8 @@ use Symfony\Component\HttpFoundation\Response;
+  */
+ class HttpFetcher extends PluginBase implements ClearableInterface, FetcherInterface, ContainerFactoryPluginInterface {
+ 
++  use DependencySerializationTrait;
++
+   /**
+    * The Guzzle client.
+    *

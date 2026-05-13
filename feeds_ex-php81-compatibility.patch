@@ -1,0 +1,20 @@
+--- a/src/XpathDomXpath.php
++++ b/src/XpathDomXpath.php
+@@ -50,7 +50,7 @@
+    *
+    * @see DOMXPath::evaluate()
+    */
+-  public function evaluate($expression, \DOMNode $context_node = NULL) {
++  public function evaluate($expression, ?\DOMNode $context_node = NULL) {
+     if ($context_node === NULL) {
+       $context_node = $this->xpath->document;
+     }
+@@ -67,7 +67,7 @@
+    *
+    * @see DOMXPath::query()
+    */
+-  public function query($expression, \DOMNode $context_node = NULL) {
++  public function query($expression, ?\DOMNode $context_node = NULL) {
+     if ($context_node === NULL) {
+       $context_node = $this->xpath->document;
+     }
