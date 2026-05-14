@@ -2,5 +2,8 @@
     "name": "atillaphp/patches",
     "description": "Centralized composer patches for Sogan Commerce projects.",
     "type": "library",
-    "license": "GPL-2.0-or-later"
+    "license": "GPL-2.0-or-later",
+    "extra": {
+        "patches": {}
+    }
 }

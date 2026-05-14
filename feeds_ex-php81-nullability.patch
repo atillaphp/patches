@@ -1,5 +1,5 @@
---- a/web/modules/contrib/feeds_ex/src/XpathDomXpath.php
-+++ b/web/modules/contrib/feeds_ex/src/XpathDomXpath.php
+--- a/src/XpathDomXpath.php
++++ b/src/XpathDomXpath.php
 @@ -50,7 +50,7 @@
    /**
     * {@inheritdoc}

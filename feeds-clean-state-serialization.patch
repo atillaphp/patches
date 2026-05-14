@@ -1,5 +1,5 @@
---- a/web/modules/contrib/feeds/src/Feeds/State/CleanState.php
-+++ b/web/modules/contrib/feeds/src/Feeds/State/CleanState.php
+--- a/src/Feeds/State/CleanState.php
++++ b/src/Feeds/State/CleanState.php
 @@ -17,7 +17,10 @@
   */
  class CleanState extends State implements CleanStateInterface {
