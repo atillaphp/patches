@@ -1,8 +1,8 @@
 diff --git a/src/Feeds/Fetcher/HttpFetcher.php b/src/Feeds/Fetcher/HttpFetcher.php
-index b73e669..e7f102c 100644
+index c4ad512..8d90cfb 100644
 --- a/src/Feeds/Fetcher/HttpFetcher.php
 +++ b/src/Feeds/Fetcher/HttpFetcher.php
-@@ -7,6 +7,7 @@
+@@ -3,6 +3,7 @@
  namespace Drupal\feeds\Feeds\Fetcher;
  
  use Drupal\Core\Cache\CacheBackendInterface;
@@ -10,23 +10,26 @@ index b73e669..e7f102c 100644
  use Drupal\Core\File\FileSystemInterface;
  use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
  use Drupal\feeds\Exception\EmptyFeedException;
-@@ -40,6 +41,8 @@
-  * )
+@@ -36,6 +37,8 @@ use Symfony\Component\HttpFoundation\Response;
   */
  class HttpFetcher extends PluginBase implements ClearableInterface, FetcherInterface, ContainerFactoryPluginInterface {
+ 
 +  use DependencySerializationTrait;
 +
    /**
     * The Guzzle client.
     *
 diff --git a/src/Feeds/State/CleanState.php b/src/Feeds/State/CleanState.php
-index f56e210..e7f102c 100644
+index 56afa34..c010dc3 100644
 --- a/src/Feeds/State/CleanState.php
 +++ b/src/Feeds/State/CleanState.php
-@@ -106,6 +106,31 @@
-   /**
-    * {@inheritdoc}
-    */
+@@ -100,6 +100,29 @@ class CleanState extends State implements CleanStateInterface {
+     );
+   }
+ 
++  /**
++   * {@inheritdoc}
++   */
 +  public function __sleep() {
 +    $vars = $this->dependencySerializationTraitSleep();
 +    foreach (['connection', 'entityTypeManager'] as $prop) {
@@ -47,17 +50,14 @@ index f56e210..e7f102c 100644
 +    $this->entityTypeManager = $container->get('entity_type.manager');
 +  }
 +
-+  /**
-+   * {@inheritdoc}
-+   */
-   public function progress($total, $progress) {
-     if (!$this->count()) {
-       $this->setCompleted();
+   /**
+    * {@inheritdoc}
+    */
 diff --git a/src/State.php b/src/State.php
-index 3a2c5e1..e7f102c 100644
+index c52fbc0..1a2498f 100644
 --- a/src/State.php
 +++ b/src/State.php
-@@ -145,10 +145,11 @@
+@@ -141,10 +141,11 @@ class State implements StateInterface, ContainerStateInterface {
    public function __sleep() {
      $vars = $this->dependencySerializationTraitSleep();
  
