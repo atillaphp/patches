@@ -1,5 +1,5 @@
 {
-    "name": "atillaphp/patches",
+    "name": "soganbilisim/patches",
     "description": "Centralized composer patches for Sogan Commerce projects.",
     "type": "library",
     "license": "GPL-2.0-or-later",
