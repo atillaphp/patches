@@ -20,18 +20,24 @@ index c4ad512..8d90cfb 100644
     * The Guzzle client.
     *
 diff --git a/src/Feeds/State/CleanState.php b/src/Feeds/State/CleanState.php
-index 56afa34..c010dc3 100644
+index 56afa34..7a8be69 100644
 --- a/src/Feeds/State/CleanState.php
 +++ b/src/Feeds/State/CleanState.php
-@@ -100,6 +100,29 @@ class CleanState extends State implements CleanStateInterface {
-     );
-   }
+@@ -21,8 +21,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
+  */
+ class CleanState extends State implements CleanStateInterface {
  
-+  /**
-+   * {@inheritdoc}
-+   */
+-  use DependencySerializationTrait;
+-
+   /**
+    * The database table name.
+    */
+@@ -102,6 +100,29 @@ class CleanState extends State implements CleanStateInterface {
+   /**
+    * {@inheritdoc}
+    */
 +  public function __sleep() {
-+    $vars = $this->dependencySerializationTraitSleep();
++    $vars = parent::__sleep();
 +    foreach (['connection', 'entityTypeManager'] as $prop) {
 +      if (($key = array_search($prop, $vars)) !== FALSE) {
 +        unset($vars[$key]);
@@ -44,15 +50,18 @@ index 56afa34..c010dc3 100644
 +   * {@inheritdoc}
 +   */
 +  public function __wakeup() {
-+    $this->dependencySerializationTraitWakeUp();
++    parent::__wakeup();
 +    $container = \Drupal::getContainer();
 +    $this->connection = $container->get('database');
 +    $this->entityTypeManager = $container->get('entity_type.manager');
 +  }
 +
-   /**
-    * {@inheritdoc}
-    */
++  /**
++   * {@inheritdoc}
++   */
+   public function progress($total, $progress) {
+     if (!$this->count()) {
+       $this->setCompleted();
 diff --git a/src/State.php b/src/State.php
 index c52fbc0..1a2498f 100644
 --- a/src/State.php
