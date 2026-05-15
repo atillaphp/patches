@@ -1,68 +1,35 @@
 diff --git a/src/Feeds/Fetcher/HttpFetcher.php b/src/Feeds/Fetcher/HttpFetcher.php
-index d92679c..13c727d 100644
+index b73e669..e7f102c 100644
 --- a/src/Feeds/Fetcher/HttpFetcher.php
 +++ b/src/Feeds/Fetcher/HttpFetcher.php
-@@ -10,6 +10,7 @@ namespace Drupal\feeds\Feeds\Fetcher;
- use Drupal\Component\Utility\UrlHelper;
+@@ -7,6 +7,7 @@
+ namespace Drupal\feeds\Feeds\Fetcher;
+ 
  use Drupal\Core\Cache\CacheBackendInterface;
- use Drupal\Core\Config\ConfigFactoryInterface;
 +use Drupal\Core\DependencyInjection\DependencySerializationTrait;
  use Drupal\Core\File\FileSystemInterface;
- use Drupal\Core\Form\FormStateInterface;
- use Drupal\feeds\FeedInterface;
-@@ -28,6 +29,8 @@ use GuzzleHttp\Exception\RequestException;
+ use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+ use Drupal\feeds\Exception\EmptyFeedException;
+@@ -40,6 +41,8 @@
   * )
   */
- class HttpFetcher extends FetcherBase implements ConfigurableTargetInterface {
+ class HttpFetcher extends PluginBase implements ClearableInterface, FetcherInterface, ContainerFactoryPluginInterface {
 +  use DependencySerializationTrait;
 +
    /**
     * The Guzzle client.
     *
 diff --git a/src/Feeds/State/CleanState.php b/src/Feeds/State/CleanState.php
-index d4e9a56..1234567 100644
+index f56e210..e7f102c 100644
 --- a/src/Feeds/State/CleanState.php
 +++ b/src/Feeds/State/CleanState.php
-@@ -12,6 +12,11 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
-  */
- class CleanState extends State implements CleanStateInterface {
- 
-+  /**
-+   * The name of the table used for clean operation.
-+   */
-+  const TABLE_NAME = 'feeds_clean_list';
-+
-   /**
-    * The database connection.
-    *
-@@ -34,7 +39,7 @@ class CleanState extends State implements CleanStateInterface {
-    *
-    * @var bool
-    */
--  protected $initiated = FALSE;
-+  public $initiated = FALSE;
- 
-   /**
-    * The feed ID.
-@@ -54,7 +59,7 @@ class CleanState extends State implements CleanStateInterface {
-    *
-    * @var bool
-    */
--  protected $cleaned = FALSE;
-+  public $cleaned = FALSE;
- 
+@@ -106,6 +106,31 @@
    /**
     * {@inheritdoc}
-@@ -113,4 +118,29 @@ class CleanState extends State implements CleanStateInterface {
-     return parent::progress($total, $progress);
-   }
- 
-+  /**
-+   * {@inheritdoc}
-+   */
+    */
 +  public function __sleep() {
 +    $vars = $this->dependencySerializationTraitSleep();
-+    foreach (['connection', 'entityTypeManager', 'logger', 'messenger'] as $prop) {
++    foreach (['connection', 'entityTypeManager'] as $prop) {
 +      if (($key = array_search($prop, $vars)) !== FALSE) {
 +        unset($vars[$key]);
 +      }
@@ -78,15 +45,19 @@ index d4e9a56..1234567 100644
 +    $container = \Drupal::getContainer();
 +    $this->connection = $container->get('database');
 +    $this->entityTypeManager = $container->get('entity_type.manager');
-+    $this->logger = $container->get('logger.factory')->get('feeds');
-+    $this->messenger = $container->get('messenger');
 +  }
 +
- }
++  /**
++   * {@inheritdoc}
++   */
+   public function progress($total, $progress) {
+     if (!$this->count()) {
+       $this->setCompleted();
 diff --git a/src/State.php b/src/State.php
+index 3a2c5e1..e7f102c 100644
 --- a/src/State.php
 +++ b/src/State.php
-@@ -141,10 +141,11 @@
+@@ -145,10 +145,11 @@
    public function __sleep() {
      $vars = $this->dependencySerializationTraitSleep();
  
