@@ -1,0 +1,230 @@
+diff --git a/src/Event/EventDispatcherTrait.php b/src/Event/EventDispatcherTrait.php
+index 383483c..a3c42e1 100644
+--- a/src/Event/EventDispatcherTrait.php
++++ b/src/Event/EventDispatcherTrait.php
+@@ -24,7 +24,7 @@ trait EventDispatcherTrait {
+    *
+    * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
+    */
+-  private $_eventDispatcher;
++  protected $_eventDispatcher;
+ 
+   /**
+    * Dispatches an event.
+diff --git a/src/FeedHandlerBase.php b/src/FeedHandlerBase.php
+index 49865f9..774a2c7 100644
+--- a/src/FeedHandlerBase.php
++++ b/src/FeedHandlerBase.php
+@@ -17,7 +17,10 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+  */
+ abstract class FeedHandlerBase implements EntityHandlerInterface {
+ 
+-  use DependencySerializationTrait;
++  use DependencySerializationTrait {
++    __sleep as dependencySerializationTraitSleep;
++    __wakeup as dependencySerializationTraitWakeUp;
++  }
+   use EventDispatcherTrait;
+   use MessengerTrait;
+   use StringTranslationTrait;
+@@ -62,4 +65,25 @@ abstract class FeedHandlerBase implements EntityHandlerInterface {
+     batch_set($batch_definition);
+   }
+ 
++  /**
++   * {@inheritdoc}
++   */
++  public function __sleep() {
++    $vars = $this->dependencySerializationTraitSleep();
++
++    // Do not serialize the event dispatcher object.
++    if (($key = array_search('_eventDispatcher', $vars)) !== FALSE) {
++      unset($vars[$key]);
++    }
++
++    return $vars;
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function __wakeup() {
++    $this->dependencySerializationTraitWakeUp();
++  }
++
+ }
+diff --git a/src/Feeds/Fetcher/HttpFetcher.php b/src/Feeds/Fetcher/HttpFetcher.php
+index c4ad512..8d90cfb 100644
+--- a/src/Feeds/Fetcher/HttpFetcher.php
++++ b/src/Feeds/Fetcher/HttpFetcher.php
+@@ -3,6 +3,7 @@
+ namespace Drupal\feeds\Feeds\Fetcher;
+ 
+ use Drupal\Core\Cache\CacheBackendInterface;
++use Drupal\Core\DependencyInjection\DependencySerializationTrait;
+ use Drupal\Core\File\FileSystemInterface;
+ use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+ use Drupal\feeds\Exception\EmptyFeedException;
+@@ -36,6 +37,8 @@ use Symfony\Component\HttpFoundation\Response;
+  */
+ class HttpFetcher extends PluginBase implements ClearableInterface, FetcherInterface, ContainerFactoryPluginInterface {
+ 
++  use DependencySerializationTrait;
++
+   /**
+    * The Guzzle client.
+    *
+diff --git a/src/Feeds/State/CleanState.php b/src/Feeds/State/CleanState.php
+index 56afa34..7eca928 100644
+--- a/src/Feeds/State/CleanState.php
++++ b/src/Feeds/State/CleanState.php
+@@ -17,8 +17,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
+  */
+ class CleanState extends State implements CleanStateInterface {
+ 
+-  use DependencySerializationTrait;
+-
+   /**
+    * The database table name.
+    */
+@@ -100,6 +98,29 @@ class CleanState extends State implements CleanStateInterface {
+     );
+   }
+ 
++  /**
++   * {@inheritdoc}
++   */
++  public function __sleep() {
++    $vars = parent::__sleep();
++    foreach (['connection', 'entityTypeManager'] as $prop) {
++      if (($key = array_search($prop, $vars)) !== FALSE) {
++        unset($vars[$key]);
++      }
++    }
++    return $vars;
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function __wakeup() {
++    parent::__wakeup();
++    $container = \Drupal::getContainer();
++    $this->connection = $container->get('database');
++    $this->entityTypeManager = $container->get('entity_type.manager');
++  }
++
+   /**
+    * {@inheritdoc}
+    */
+diff --git a/src/FeedsBatchBase.php b/src/FeedsBatchBase.php
+index f0ae2cb..83b2aba 100644
+--- a/src/FeedsBatchBase.php
++++ b/src/FeedsBatchBase.php
+@@ -2,11 +2,15 @@
+ 
+ namespace Drupal\feeds;
+ 
++use Drupal\Core\DependencyInjection\DependencySerializationTrait;
++
+ /**
+  * Base class for batched feeds tasks.
+  */
+ abstract class FeedsBatchBase implements FeedsBatchInterface {
+ 
++  use DependencySerializationTrait;
++
+   /**
+    * The Feeds executable.
+    *
+diff --git a/src/FeedsExecutable.php b/src/FeedsExecutable.php
+index 02edd9c..b939e8b 100644
+--- a/src/FeedsExecutable.php
++++ b/src/FeedsExecutable.php
+@@ -28,7 +28,10 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+  */
+ class FeedsExecutable implements FeedsExecutableInterface, ContainerInjectionInterface {
+ 
+-  use DependencySerializationTrait;
++  use DependencySerializationTrait {
++    __sleep as dependencySerializationTraitSleep;
++    __wakeup as dependencySerializationTraitWakeUp;
++  }
+   use EventDispatcherTrait;
+   use StringTranslationTrait;
+ 
+@@ -338,4 +341,25 @@ class FeedsExecutable implements FeedsExecutableInterface, ContainerInjectionInt
+     }
+   }
+ 
++  /**
++   * {@inheritdoc}
++   */
++  public function __sleep() {
++    $vars = $this->dependencySerializationTraitSleep();
++
++    // Do not serialize the event dispatcher object.
++    if (($key = array_search('_eventDispatcher', $vars)) !== FALSE) {
++      unset($vars[$key]);
++    }
++
++    return $vars;
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function __wakeup() {
++    $this->dependencySerializationTraitWakeUp();
++  }
++
+ }
+diff --git a/src/FeedsQueueExecutable.php b/src/FeedsQueueExecutable.php
+index f73b11a..d42dfd9 100644
+--- a/src/FeedsQueueExecutable.php
++++ b/src/FeedsQueueExecutable.php
+@@ -121,4 +121,24 @@ class FeedsQueueExecutable extends FeedsExecutable {
+     Error::logException($this->logger, $exception, $message, $variables);
+   }
+ 
++  /**
++   * {@inheritdoc}
++   */
++  public function __sleep() {
++    $vars = parent::__sleep();
++    // Do not serialize the logger object.
++    if (($key = array_search('logger', $vars)) !== FALSE) {
++      unset($vars[$key]);
++    }
++    return $vars;
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function __wakeup() {
++    parent::__wakeup();
++    $this->logger = \Drupal::getContainer()->get('logger.factory')->get('feeds');
++  }
++
+ }
+diff --git a/src/State.php b/src/State.php
+index c52fbc0..67eef5a 100644
+--- a/src/State.php
++++ b/src/State.php
+@@ -141,10 +141,11 @@ class State implements StateInterface, ContainerStateInterface {
+   public function __sleep() {
+     $vars = $this->dependencySerializationTraitSleep();
+ 
+-    // Do not serialize the logger object.
+-    $key = array_search('logger', $vars);
+-    if ($key !== FALSE) {
+-      unset($vars[$key]);
++    // Do not serialize the logger, messenger and event dispatcher objects.
++    foreach (['logger', 'messenger', '_eventDispatcher'] as $prop) {
++      if (($key = array_search($prop, $vars)) !== FALSE) {
++        unset($vars[$key]);
++      }
+     }
+ 
+     return $vars;
